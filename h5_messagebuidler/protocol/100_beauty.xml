@@ -1,0 +1,35 @@
+<!-- 协议约定
+  1.文件名:moduleKey_moduleName.xml
+  2.消息号保证唯一(=moduleKey*1000+seq)
+  3.上行消息用奇数(2001)，下行消息用偶数(2002)
+-->
+<module name="beauty" desc="美人模块">
+	<protocol key="100002_BeautyList" desc="当前玩家所拥有的美人">
+            <BinProperty name="beauty_list"         type="proto"    proto="HeroAllBeautyProto"          desc="美人数据"/>
+    </protocol>
+
+    <protocol key="100003_Active" desc="激活美人">
+            <BinProperty name="id"         type="int32"    desc="美人ID"/>
+    </protocol>
+
+    <protocol key="100004_ActiveSuccess" desc="激活美人成功">
+            <BinProperty name="beauty" type="HeroBeautyProto"  desc="美人数据"/>
+    </protocol>
+
+    <protocol key="100005_SetFightingStatus" desc="设置美人出战状态">
+            <BinProperty name="slot"   type="byte"    desc="所在槽"/>
+            <BinProperty name="id"     type="int32"    desc="美人ID"/>
+    </protocol>
+
+    <protocol key="100006_FightingStatus" desc="设置美人状态成功">
+            <BinProperty name="slot"   type="byte"    desc="所在槽"/>
+            <BinProperty name="id"     type="int32"    desc="美人ID"/>
+    </protocol>
+
+    <protocol key="100010_BeautyExp" desc="美人经验值/等级变化">
+        <BinProperty name="id" type="int32" desc="美人ID"/>
+        <BinProperty name="exp" type="int64" desc="最新的经验值"/>
+        <BinProperty name="max_exp" type="int64" desc="最大经验值"/>
+        <BinProperty name="level" type="int32" desc="最新的等级"/>
+    </protocol>
+</module>

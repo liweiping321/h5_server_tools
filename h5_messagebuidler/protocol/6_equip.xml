@@ -1,0 +1,17 @@
+<!-- 协议约定
+  1.文件名:moduleKey_moduleName.xml
+  2.消息号保证唯一(=moduleKey*1000+seq)
+  3.上行消息用奇数(2001)，下行消息用偶数(2002)
+-->
+<module name="equip" desc="装备模块">
+	<protocol key="6001_Put" desc="穿装备-请求">
+		<BinProperty type="int"  name="heroPosId"  desc="装备槽id" />
+		<BinProperty type="long"  name="id"  desc="物品唯一ID" />
+	</protocol>
+	<protocol key="6003_Off" desc="脱装备-请求">
+		<BinProperty type="long"  name="id"  desc="物品唯一ID" />
+	</protocol>
+	<protocol key="6005_UpdateAll" desc="一键换装-请求">
+		<BinProperty type="int"  name="heroPosId"  desc="装备槽id" />
+	</protocol>
+</module>

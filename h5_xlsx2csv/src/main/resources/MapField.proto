@@ -1,0 +1,5 @@
+message %MODULE_PROTO_NAME%%SIDE%Proto
+{
+    optional %PROTO_MAP_KEY_TYPE% key=1;
+    optional %PROTO_MAP_VALUE_TYPE% value=2;
+}

@@ -1,0 +1,42 @@
+<!-- 协议约定
+  1.文件名:moduleKey_moduleName.xml
+  2.消息号保证唯一(=moduleKey*1000+seq)
+  3.上行消息用奇数(2001)，下行消息用偶数(2002)
+-->
+<module name="pet" desc="宠物">
+		<protocol key="1001_RemoveOverlord" desc="协议描述(协议头字段有什么用)"> 
+			<BinProperty type="int"      name="skillID"  desc="测试描述" /> 
+		</protocol>
+		<protocol key="1002_PetsOpenSkillBox" desc="开启被动技能栏位,p1宠物ID"> 
+			<BinProperty type="boolean" name="isGold"  desc="是否使用金币" />
+            <errors>
+                <error type="Not_active"  />
+
+            </errors>
+		</protocol>
+		<protocol key="1005_PetsOpenSkillBox1" desc="开启被动技能栏位结果,p1宠物ID">
+			<BinProperty type="boolean" name="success"  desc="成功失败" /> 
+		</protocol>
+		<protocol key="1006_PetsRelease" desc="放生宠物结果,p1宠物ID"> 
+			<BinProperty type="boolean" name="success"  desc="成功失败" /> 
+		</protocol>
+		<protocol key="1007_PetsRename" desc="宠物改名,p1宠物ID"> 
+			<BinProperty type="boolean" name="isBind"  desc="是否使用绑定点券" /> 
+			<BinProperty type="string" name="nickname"  desc="宠物昵称" /> 
+		</protocol>
+		<protocol key="1008_PetsRename" desc="宠物改名结果,p1宠物ID"> 
+			<BinProperty type="boolean" name="success"  desc="是否成功" /> 
+		</protocol>
+		<protocol key="1010_PetsSetFight" desc="宠物出战结果,p1宠物ID"> 
+			<BinProperty type="boolean" name="success"  desc="是否成功" /> 
+		</protocol>
+		<protocol key="1011_PetsUseBornEgg" desc="使用宠物蛋,p1背包开始位置"> 
+			<BinProperty type="int" name="templateId"  desc="宠物蛋模版ID" /> 
+		</protocol>
+		<protocol key="1013_PetsUseSkillBook" desc="使用宠物技能书,p1宠物ID"> 
+			<BinProperty type="int" name="templateId"  desc="技能书模版ID" /> 
+		</protocol>
+		<protocol key="1014_PetsUseTrainLiquid" desc="使用宠物药水,p1宠物ID">
+			<BinProperty type="int" name="templateId"  desc="药水模版ID" /> 
+		</protocol>
+</module>

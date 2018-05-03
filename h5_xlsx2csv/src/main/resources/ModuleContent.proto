@@ -1,0 +1,12 @@
+package proto;
+
+option java_package="app.protobuf.%side%";
+option java_outer_classname="%MODULE_NAME%%SIDE%Content";
+option optimize_for=SPEED;
+
+message %MODULE_NAME%%SIDE%Protos
+{
+    repeated %MODULE_NAME%%SIDE%Proto info=1;
+}
+
+message %MODULE_NAME%%SIDE%Proto

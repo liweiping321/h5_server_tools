@@ -1,0 +1,19 @@
+<!-- 协议号定义约定
+  1.文件名:moduleKey_moduleName.xml
+  2.消息号保证唯一(=moduleKey*1000+seq)
+  3.上行消息用奇数(2001)，下行消息用偶数(2002)
+-->
+<module name='spell' desc='技能模块'>
+    <protocol key="4001_SetFightSpell" desc="设置战斗技能">
+        <BinProperty type="int" name="selectSpellId"  desc="设置的技能ID" />
+        <errors>
+            <error tipsId="SPELL_CAN_NOT_FIND" desc="找不到技能" />
+            <error tipsId="SPELL_SLOT_EQUIP" desc="技能已经在装备使用中" />
+        </errors>
+    </protocol>
+
+    <protocol key="4002_SetFightSpellSuc" desc="设置战斗技能结果">
+        <BinProperty type ="int" name="slot" desc="设置的技能槽位"/>
+        <BinProperty type="int" name="useSpellId"  desc="设置的技能ID" />
+    </protocol>
+</module>

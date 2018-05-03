@@ -1,0 +1,19 @@
+<!-- 协议号定义约定
+  1.文件名:moduleKey_moduleName.xml
+  2.消息号保证唯一(=moduleKey*1000+seq)
+  3.上行消息用奇数(2001)，下行消息用偶数(2002)
+-->
+<module name='misc' desc='消息模块'>
+    <protocol key="2002_Tips" desc="通用提示消息">
+        <BinProperty type="int" name="tipsId"  desc="消息提示ID" />
+        <BinProperty type="int" name="type"  desc="消息类型" />
+        <BinProperty type="int" name="reqMsgCode"  desc="请求消息号" />
+        <BinProperty name="args" type="list" listType="string" desc="可变参数列表" />
+
+    </protocol>
+
+    <protocol key="2011_GMCommond" desc="GM命令">
+        <BinProperty type="string" name="cmd"  desc="命令内容" />
+    </protocol>
+
+</module>

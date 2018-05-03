@@ -1,0 +1,259 @@
+<!-- 协议号定义约定
+  1.文件名:moduleKey_moduleName.xml
+  2.消息号保证唯一(=moduleKey*1000+seq)
+  3.上行消息用奇数(2001)，下行消息用偶数(2002)
+-->
+<module name='scene' desc='场景,战斗相关'>
+    <protocol key="3001_Loaded" desc="客户端加载完场景数据" oldKey="1">
+        <BinProperty type="int" name="vx"  desc="视野宽度" />
+        <BinProperty type="int" name="vy"  desc="视野高度" />
+		<remark>
+		   客户端加载完场景数据, 可进入场景时发送. 发送完等待服务器消息
+		</remark>
+    </protocol>
+	
+	<protocol key="3003_ChangeViewRange" desc="改变可视范围大小" oldKey="2">
+        <BinProperty type="int" name="vx"  desc="视野宽度" />
+        <BinProperty type="int" name="vy"  desc="视野高度" />
+		<remark>
+		   改变可视范围大小. 只有已经进入场景才能发送(每次场景加载完都会附带个视野范围的)
+		</remark>
+    </protocol>
+    
+	<protocol key="3005_ChangeLine" desc="请求换线" oldKey="3">
+        <BinProperty type="int" name="targetLine"  desc="目标线数" />
+		<remark>
+			请求换线, 后面附带varint的目标线数目. 单人普通场景、副本中不能发这条消息. 线是从1开始的. 最大线数目是在场景表中配置的, 客户端自己读取配置文件
+			客户端请求换线后, 把选线的列表锁住, 不让客户端再点击, 以免多次请求换线. 直到服务器回应这次换线请求为止
+			服务器有2种答复
+			1. 换线成功, 发送切场景消息 S2C_SCENE_CHANGE_SCENE = 2;
+			2. 换线失败(比如正在被别人攻击) S2C_CHANGE_LINE_FAIL = 6;
+            消息后面附带varint32的失败原因(参见那条消息的注释)
+		</remark>
+    </protocol>
+	
+	<protocol key="3007_GetLineInfo" desc="请求各条线的负载信息" oldKey="4">
+		<remark>
+			如果玩家从A场景切换到B场景，可以立即发送该条协议，请求各条线的负载
+		    如果玩家从A场景1线切换到A场景2线，如果此前有请求过本场景的负载信息，则使用原来的数据，否则给服务器发送一条新的请求
+		</remark>
+    </protocol>
+	
+	<protocol key="3009_HeroMove" desc="英雄移动" oldKey="5">
+		<BinProperty name="movePoints" type="list" listType="int" desc="路径点" >
+				<BinProperty type="int" desc="x坐标点" name="x"/>
+				<BinProperty type="int" desc="y坐标点" name="y" /> 
+		</BinProperty>
+		<remark>
+			varint32 总共的节点数
+			for 每个节点 {varint32 x坐标,varint32 y坐标}
+		</remark>
+    </protocol>
+	
+	<protocol key="3011_StopMove" desc="停止移动" oldKey="6">
+		<remark>
+			发送停止消息给服务器, 本地并立即停止移动. 只有在移动状态下才发送
+			文档有云: 在跑不停状态下，按ESC键，则中断跑不停，并在当前坐标点停下。
+		</remark>
+    </protocol>
+
+   	<protocol key="3013_ChangeDirection" desc="改变自己面对的方向" oldKey="7">
+   		<BinProperty type="int" desc="朝向" name="dir"/>
+		<remark>
+			改变自己面对的方向(没改变不要发!). 只有静止状态下并且身上没有晕眩状态才发送. 本地立即转向, 服务器只会广播给别人, 不发送给转向的当事人
+			文档有云: 若点击到距离人物一格以内的点时，则执行“人物转向”指令，所转的方向视鼠标当前所在的方向而定
+			后面附带个varint32 的坐标. 0-7 每个值代表哪个方向客户端自己定. 别人收到的广播消息中也会有这个值, 服务器不管每个值代表的方向,但只能是0-7, 不然会遭断线处罚
+		</remark>
+    </protocol> 
+	
+	<protocol key="3015_HeroJump" desc="客户端请求跳跃" oldKey="8">
+   		<BinProperty type="int" desc="x坐标点" name="jumpTargetX"/>
+		<BinProperty type="int" desc="y坐标点" name="jumpTargetY" /> 
+		<remark>
+		 客户端请求跳跃. 不管是一段跳还是二段跳, 都只发跳跃的目标点(鼠标所指的点, 不管当前点是否可走以及距离,
+         这些全服务器根据当时服务器上角色的坐标来计算)
+         死亡/晕眩/地图不准跳跃/体力不足/冷却中/正在施法时, 不发送
+         若当前正在移动, 发送跳跃请求后并不打断移动
+		</remark>
+    </protocol> 
+
+    <protocol key="3017_RequestTransport" desc="请求传送" oldKey="9">
+   		<BinProperty type="int" desc="x坐标点" name="tx"/>
+		<BinProperty type="int" desc="y坐标点" name="ty" /> 
+		<remark>
+         请求传送. 需要判断此传送门通过的最低等级, 不到等级的话不要发此消息
+         死亡/晕眩/跳跃中不发送. 且距离此传送门1格之内才能发送 (服务器会放宽到2格)
+         服务器有2种返回可能
+         1. S2C_SCENE_CHANGE_SCENE 成功, 要求切场景
+         2. S2C_HERO_TRANSPORT_FAIL 失败, 可能是距离太远, 可能被晕, 可能坐标发错了 等等
+         客户端需要等收到以上2条消息中的任意一条, 才能再发送消息请求穿过传送门. 如果是距离太远, 可能是不同步导致,重新向传送门所在坐标移动一下再请求
+         附带要走的传送门在配置文件中所配置的坐标 (不是英雄所在坐标)
+		</remark>
+    </protocol> 
+
+     <protocol key="3019_ReleaseSpell" desc="释放技能" oldKey="10">
+     	<BinProperty type="int" desc="技能类型" name="spellType"/>
+   		<BinProperty type="int" desc="x坐标点" name="targetX"/>
+		<BinProperty type="int" desc="y坐标点" name="targetY" /> 
+		<BinProperty type="long" desc="目标Id" name="targetId"/>
+		<remark>
+         如果无目标id则发送0（如果发了，优先打这个家伙）
+		</remark>
+    </protocol> 
+
+     <protocol key="3021_RequestRelive" desc="请求复活" oldKey="11">
+     	<BinProperty type="int" desc="复活类型" name="reliveType"/>
+   		 
+		<remark>
+         请求NPC传送发送C2S_REQUEST_NPC_TRANSPORT消息，附带以下信息 varint32 npcId varint32
+         传送列表索引(在NPC传送数据中读取)，从0开始
+         成功返回S2C_REQUEST_NPC_TRANSPORT（只有消息头）
+         注意：客户端在发送NPC传送消息后，将传送面板锁定，等到服务器返回消息后再解锁面板
+		</remark>
+    </protocol> 
+
+    <protocol key="3023_HeroTelePort" desc="普通场景的瞬移点请求瞬移" oldKey="19">
+     	<BinProperty type="int" desc="瞬移点Id" name="teleportId"/>
+    </protocol> 
+
+     <protocol key="3025_GetSurroundingHero" desc="查询周围玩家" oldKey="15">
+     	 <remark>
+     	 	查询周围玩家. 结果需要缓存. 5秒钟才能查询一次, 切场景/换线时清掉缓存和cd.
+     	 	服务器返回前加锁. 切场景/换线, 服务器可能没有返回, 也解锁. 服务器之后还是有可能返回的
+     	 	仅身在普通场景时才能发送此请求. 在副本点查询周围玩家时, 什么都不显示
+     	 </remark>
+    </protocol> 
+
+    <protocol key="3027_UpdateSpellTarget" desc="更改技能目标" oldKey="62">
+    	<BinProperty type="int" desc="目标Id" name="targetId">
+            <le value="0" desc="targetId 小于等于0">
+              <BinProperty type="int" desc="x坐标点" name="targetX"/>
+              <BinProperty type="int" desc="y坐标点" name="targetY" /> 
+            </le>
+        </BinProperty>
+        <BinProperty type="int" desc="目标Id" name="targetId"/>
+        <BinProperty type="int" desc="x坐标点" name="targetX"/>
+        <BinProperty type="int" desc="y坐标点" name="targetY" />
+        <remark>
+     	 	更新技能目标，必须在放可以更新位置的持续施法技能时才能发 varint64 目标id，如果无目标id则发送0，后面附带技能坐标 varint32
+     	 	技能释放坐标x，如果有目标（目标id > 0）, 则不发 varint32 技能释放坐标y，如果有目标（目标id > 0）, 则不发
+     	 	仅身在普通场景时才能发送此请求. 在副本点查询周围玩家时, 什么都不显示
+     	 	这个消息每500毫秒发送一次
+     	 </remark>
+    </protocol> 
+
+    <protocol key="3029_SpellChargeUpdate" desc="蓄力技能更新" oldKey="67">
+    	<BinProperty type="boolean" desc="是否释放" name="isRelease"/>
+    	<BinProperty type="int" desc="x坐标点" name="targetX"/>
+		<BinProperty type="int" desc="y坐标点" name="targetY" /> 
+     	<remark>
+     	 	蓄力技能更新（2个作用，1-将蓄力技能释放出去 2-更新蓄力技能的位置）
+     	 	boolean true表示放出去，false表示仅仅更新位置 varint32 技能蓄力坐标x varint32 技能蓄力坐标y
+     	 	当前约定2个时候使用此技能: 
+     	 	1、当客户端需要提前释放蓄力技能时候，第一个参数，传true
+     	 	2、离蓄力结束时间，还剩500毫秒时候，主动上报一次客户端当前的蓄力位置
+     	 </remark>
+    </protocol> 
+
+    <protocol key="3031_AutoCombat" desc="开始挂机自动打怪" oldKey="16">	 
+    </protocol> 
+
+    <protocol key="3033_CancelAutoCombat" desc="开始挂机自动打怪" oldKey="17">	 
+    </protocol> 
+
+    <protocol key="3035_ReturnCity" desc="回城接口" oldKey="18">	 
+    </protocol> 
+
+    <protocol key="3037_FreeTransport" desc="免费传送" oldKey="140">	
+    	<BinProperty type="int" desc="场景Id" name="sceneId"/>
+    	<BinProperty type="int" desc="x坐标点" name="posX"/>
+		<BinProperty type="int" desc="y坐标点" name="posY" />  
+    </protocol> 
+	
+	<protocol key="3039_InterruptCastingSpell" desc="打断持续施法技能" oldKey="61">	 
+    </protocol> 
+
+    <protocol key="3041_GetNearestMonster" desc="获得最近的怪物坐标" oldKey="86">	 
+    		<remark>
+    			获得最近的怪物坐标. 只有在自动挂机, 且视野中没有怪物时, 才能请求, 让自动挂机时能知道去哪
+    			等服务器返回后, 跑去那个坐标. 在跑到之前, 且杀完视野中所有怪之前, 不能再请求
+    			所有副本都能请求, 确定副本已经完成后, 不要请求.
+    		</remark>
+    </protocol>
+
+    <protocol key="3043_GetCanAttackStat" desc="获取能否攻击指定目标" oldKey="176">
+    	<BinProperty type="int" desc="目标Id" name="targetId"/>
+    	<remark>
+    		获取能否攻击指定目标（一个目标只能获取一次，该目标变换了服务器会主动推送）
+    	</remark>
+    </protocol>
+
+    <protocol key="3045_GetMonsterPos" desc="获取怪物的位置 " oldKey="206">
+    	<BinProperty type="int" desc="怪物类型" name="monsterIdType"/>
+    	<BinProperty type="int" desc="怪物Id" name="monsterId"/>
+    	<remark>
+    		获取怪物的位置 varint32 类型 MonsterIdType 1-表示客户端发送的是怪物唯一id 2-表示客户端发送的是怪物的配置id
+    	</remark>
+    </protocol>
+
+    <protocol key="3002_Enter" desc="角色进入场景" oldKey="1">
+        <BinProperty type="int" desc="pk模式,线，场景序列" name="info"/>
+        <BinProperty type="int" desc="X坐标" name="x"/>
+        <BinProperty type="int" desc="Y坐标" name="y"/>
+        <BinProperty type="int" desc="当前生命" name="life"/>
+        <BinProperty type="int" desc="最大生命" name="maxLife"/>
+        <BinProperty name="buffInfos" type="list" listType="int" desc="buff列表" >
+                <BinProperty type="bytes" desc="buff信息一段二进制数据" name="buffInfo"/>
+       </BinProperty>
+        <remark>
+            服务器已经把客户端添加到场景, 客户端可进入场景. 消息后面附带英雄的坐标/血量/buff等的信息  
+            int pkMode = info and 7; // pk模式  
+            int line = (info >>> 3) and  255; // 第几线  
+            int sceneSequence = (info >>> 11) - 1; //  
+            值>=0时有效，表示场景所属的服务器sequence（注意，当场景是副本或者中立地图时候，这个值是-1，无效值）
+        </remark>
+    </protocol>
+
+    <protocol key="3004_ChangeScene" desc="切换场景" oldKey="2">
+        <BinProperty type="int" desc="目标场景" name="targetSceneId"/>
+        <remark>
+            要求客户端改变场景, 客户端开始加载目标场景数据, 后面附带个varint32的目标场景id
+            客户端收到此消息后, 如果目标场景id和当前所在的场景id相同, 则为换线, 不需要出加载界面(本来就已经加载好了),
+            直接发送C2S_SCENE_LOADED, 并把视野中所有的怪和英雄啥的都清掉. 在服务器发送进入场景成功消息之前,
+            不可以发送任何和场景有关的消息(移动, 战斗啥的). 等待服务器返回S2C_SCENE_ENTER后, 把坐标/血量啥的都设为消息后面附带的信息
+        </remark>
+    </protocol>
+    
+    <protocol key="3006_Add_Hero" desc="在视野中添加英雄" oldKey="3">
+        <BinProperty type="long" desc="英雄id" name="sceneObjId"/>
+        <BinProperty type="int" desc="性别" name="sex"/>
+        <BinProperty type="string" desc="名字" name="name"/>
+        <BinProperty type="string" desc="帮派Id" name="guildCode"/>
+        <BinProperty type="string" desc="帮派名字" name="guildName"/>
+        <BinProperty type="int" desc="军团Id" name="armyId"/>
+        <BinProperty type="int" desc="城市Id,没有盟会为0" name="cityId"/>
+        <BinProperty type="int" desc="组成数据 职业 = (result and 7)" name="cityMasterResult"/>
+        <BinProperty type="long" desc="换装" name="resources"/>
+        <BinProperty type="long" desc="换装2" name="resources2"/>
+        <BinProperty type="int" desc="称号id" name="titleId"/>
+
+        <BinProperty type="int" desc="pk值" name="pkValue"/>
+        <BinProperty type="long" desc="瞬移结束时间,用它判断是否正在瞬移。如果正在瞬移,延迟一会儿再展示英雄" name="teleportEndTime"/>
+        <BinProperty type="long" desc="最近一次切磋失败时间，用来展示失败动画" name="failTime"/>
+        <BinProperty type="int" desc="等级数据" name="level"/>
+        <BinProperty type="int" desc="X坐标" name="x"/>
+        <BinProperty type="int" desc="Y坐标" name="y"/>
+        <BinProperty type="int" desc="当前生命" name="life"/>
+        <BinProperty type="int" desc="最大生命" name="maxLife"/>
+        <BinProperty name="buffInfos" type="list" listType="int" desc="buff列表" >
+                <BinProperty type="bytes" desc="buff信息一段二进制数据" name="buffInfo"/>
+       </BinProperty>
+        <remark>
+            要求客户端改变场景, 客户端开始加载目标场景数据, 后面附带个varint32的目标场景id
+            客户端收到此消息后, 如果目标场景id和当前所在的场景id相同, 则为换线, 不需要出加载界面(本来就已经加载好了),
+            直接发送C2S_SCENE_LOADED, 并把视野中所有的怪和英雄啥的都清掉. 在服务器发送进入场景成功消息之前,
+            不可以发送任何和场景有关的消息(移动, 战斗啥的). 等待服务器返回S2C_SCENE_ENTER后, 把坐标/血量啥的都设为消息后面附带的信息
+        </remark>
+    </protocol>
+
+</module>

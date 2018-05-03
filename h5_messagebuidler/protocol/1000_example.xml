@@ -1,0 +1,45 @@
+<!-- 协议约定
+  1.文件名:moduleKey_moduleName.xml
+  2.消息号保证唯一(=moduleKey*1000+seq)
+  3.上行消息用奇数(2001)，下行消息用偶数(2002)
+-->
+<module name="example" desc="示例">
+    <protocol key="1000001_get" desc="请求消息">
+        <BinProperty type="boolean"  name="name1" desc="测试描述" />
+        <BinProperty type="byte"     name="name2"  desc="测试描述" />
+        <BinProperty type="short"    name="name4" desc="测试描述" />
+        <BinProperty type="int"      name="name6"  desc="测试描述" />
+        <BinProperty type="string"   name="name7" desc="测试描述" />
+        <BinProperty type="long"     name="name8"  desc="测试描述" />
+        <BinProperty type="date"     name="name9"  desc="测试描述" />
+        <BinProperty name="beauty_list" type="bytes" proto="HeroAllBeautyProto"  desc="美人数据"/>
+        <BinProperty name="list_int" type="list" listType="int"      desc="测试list_int"/>
+        <BinProperty name="list_short" type="list" listType="short"      desc="测试list_short"/>
+        <BinProperty name="list_long" type="list" listType="long"      desc="测试list_long"/>
+        <BinProperty name="list_string" type="list" listType="string"      desc="测试list_string"/>
+        <BinProperty name="list_date" type="list" listType="date"      desc="测试list_date"/>
+
+    </protocol>
+
+    <protocol key="1000002_send" desc="响应消息">
+        <BinProperty type="boolean"  name="name1" desc="测试描述" />
+        <BinProperty type="byte"     name="name2"  desc="测试描述" />
+        <BinProperty type="short"    name="name4" desc="测试描述" />
+        <BinProperty type="int"      name="name6"  desc="测试描述" />
+        <BinProperty type="string"   name="name7" desc="测试描述" />
+        <BinProperty type="long"     name="name8"  desc="测试描述" />
+        <BinProperty type="date"     name="name9"  desc="测试描述" />
+        <BinProperty name="beauty_list" type="bytes" proto="HeroAllBeautyProto"  desc="美人数据"/>
+        <BinProperty name="list_int" type="list" listType="int"      desc="测试list_int"/>
+        <BinProperty name="list_short" type="list" listType="short"      desc="测试list_short"/>
+        <BinProperty name="list_long" type="list" listType="long"      desc="测试list_long"/>
+        <BinProperty name="list_string" type="list" listType="string"      desc="测试list_string"/>
+        <BinProperty name="list_date" type="list" listType="date"      desc="测试list_date"/>
+    </protocol>
+
+    <protocol key="1000004_IsEmptyMessage" desc="测试空消息">
+    </protocol>
+    
+
+
+</module>

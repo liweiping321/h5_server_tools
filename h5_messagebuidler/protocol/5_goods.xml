@@ -1,0 +1,26 @@
+<!-- 协议约定
+  1.文件名:moduleKey_moduleName.xml
+  2.消息号保证唯一(=moduleKey*1000+seq)
+  3.上行消息用奇数(2001)，下行消息用偶数(2002)
+-->
+<module name="goods" desc="背包模块">
+	<protocol key="5001_Sell" desc="回收物品-请求">
+		<BinProperty type="long"  name="id"  desc="物品唯一ID" />
+	</protocol>
+	<protocol key="5002_Syn" desc="物品同步-响应">
+		<BinProperty type="bytes"  name="userGoodsList" proto="UserGoodsClientProtos" desc="物品变更列表" />
+	</protocol>
+	<protocol key="5003_Use" desc="使用物品-请求">
+		<BinProperty type="long"  name="id"  desc="物品唯一ID" />
+		<BinProperty type="int"  name="count"  desc="物品个数" />
+		<BinProperty type="int"  name="param2"  desc="参数1" />
+		<BinProperty type="long"  name="param3"  desc="参数2" />
+	</protocol>
+	<protocol key="5004_Remove" desc="删除物品">
+		<BinProperty type="long"  name="id"  desc="物品唯一ID" />
+	</protocol>
+	<protocol key="5006_CountChange" desc="物品数量变动">
+		<BinProperty type="long"  name="id"  desc="物品唯一ID" />
+		<BinProperty type="int"  name="count"  desc="物品个数" />
+	</protocol>
+</module>

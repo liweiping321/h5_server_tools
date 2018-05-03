@@ -1,0 +1,12 @@
+package proto;
+
+option java_package="app.protobuf.cfg";
+option java_outer_classname="%MODULE_NAME%CfgContent";
+option optimize_for=SPEED;
+
+message %MODULE_NAME%CfgProtos
+{
+    repeated %MODULE_NAME%CfgProto cfg=1;
+}
+
+message %MODULE_NAME%CfgProto
